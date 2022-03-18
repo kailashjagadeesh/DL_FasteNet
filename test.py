@@ -37,39 +37,6 @@ NUMBER_OF_CYCLES = 5
 helpers = helpers(mark_number=MARK_NUMBER, version_number=VERSION_NUMBER, weights_location=DIRECTORY2)
 device = helpers.get_device()
 
-def generate_dataloader(index):
-    # holder for images and groundtruths and lowest running loss
-    images = []
-    truths = []
-
-    from_image = int(index * NUMBER_OF_IMAGES/NUMBER_OF_CYCLES)
-    to_image = int((index+1) * NUMBER_OF_IMAGES/NUMBER_OF_CYCLES)
-
-    # read in the images
-    for i in range(from_image, to_image):
-        image_path = os.path.join(DIRECTORY, f'Dataset/image/image_{i}.png')
-        truth_path = os.path.join(DIRECTORY, f'Dataset/label/label_{i}.png')
-
-        if os.path.isfile(image_path): 
-
-            # read images
-            image = TF.to_tensor(cv2.imread(image_path))[0]
-            truth = TF.to_tensor(cv2.imread(truth_path))[0]
-            
-            # normalize inputs, 1e-6 for stability as some images don't have truth masks (no fasteners)
-            image /= torch.max(image + 1e-6)
-            truth /= torch.max(truth + 1e-6)
-
-            images.append(image)
-            truths.append(truth)
-
-    print(f'Attempted to load images {from_image} to {to_image}, actually loaded {len(images)} images.')
-
-
-    # feed data to the ImageLoader and start the dataloader to generate batches
-    dataset = ImageLoader(images, truths, (images[0].shape[0], images[0].shape[1]))
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
-    return dataloader
 
 # uncomment this to one to view the output of the dataset
 # helpers.peek_dataset(dataloader=dataloader)
@@ -106,7 +73,7 @@ torch.no_grad()
 FasteNet.eval()
 frames_to_render = 100
 start_time = time.time()
-
+out = cv2.VideoWriter('project.avi',cv2.VideoWriter_fourcc(*'DIVX'),15,
 
 # set to true for inference
 for _ in range(frames_to_render):
